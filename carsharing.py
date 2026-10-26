@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 
 app = FastAPI()
 
@@ -24,9 +24,12 @@ async def get_cars(size: str|None = None, doors: int|None = None) -> list:
     return result
 
 @app.get("/api/cars/{id}")
-async def car_by_id(id: int):
+async def car_by_id(id: int) -> dict:
     result = [car for car in db if car["id"] == id]
-    return result[0]
+    if result:
+        return result[0]
+    else:
+        raise HTTPException(status_code=404, detail=f"No car with id {id}")
 
 @app.get("/")
 async def welcome(name):

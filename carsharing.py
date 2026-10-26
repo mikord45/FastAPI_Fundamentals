@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException
 
 from schemas import load_db, CarInput, save_db, CarOutput
 
-app = FastAPI()
+app = FastAPI(title="Car Sharing Service")
 
 db = load_db()
 

@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 
-from schemas import load_db, CarInput, save_db, CarOutput
+from schemas import load_db, CarInput, save_db, CarOutput, TripOutput, TripInput
 
 app = FastAPI(title="Car Sharing Service")
 
@@ -49,6 +49,16 @@ def change_car(id: int, new_data: CarInput) -> CarOutput:
         setattr(car, field, value)
     save_db(db)
     return car
+
+@app.post("/api/cars/{car_id}/trips")
+def add_trip(car_id: int, trip: TripInput) -> TripOutput:
+    car = next((car for car in db if car.id == car_id), None)
+    if car is None:
+        raise HTTPException(status_code=404, detail=f"No car with id {car_id}")
+    new_trip = TripOutput(id=len(car.trips) + 1, **trip.model_dump())
+    car.trips.append(new_trip)
+    save_db(db)
+    return new_trip
 
 @app.get("/")
 async def welcome(name):

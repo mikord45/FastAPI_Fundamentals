@@ -40,6 +40,16 @@ def remove_car(id: int) -> None:
     else:
         raise HTTPException(status_code=404, detail=f"No car with id {id}")
 
+@app.put("/api/cars/{id}")
+def change_car(id: int, new_data: CarInput) -> CarOutput:
+    car = next((car for car in db if car.id == id), None)
+    if car is None:
+        raise HTTPException(status_code=404, detail=f"No car with id {id}")
+    for field, value in new_data.model_dump().items():
+        setattr(car, field, value)
+    save_db(db)
+    return car
+
 @app.get("/")
 async def welcome(name):
     return {"message": f"Welcome, {name} to the Car Sharing service!"}

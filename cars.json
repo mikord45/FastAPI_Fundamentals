@@ -78,8 +78,8 @@
     },
     {
         "size": "xl",
-        "fuel": "electric",
-        "doors": 5,
+        "fuel": "gasoline",
+        "doors": 7,
         "transmission": "auto",
         "id": 12
     }

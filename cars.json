@@ -81,13 +81,6 @@
         "fuel": "electric",
         "doors": 5,
         "transmission": "auto",
-        "id": 12
-    },
-    {
-        "size": "xl",
-        "fuel": "electric",
-        "doors": 5,
-        "transmission": "auto",
         "id": 13
     }
 ]

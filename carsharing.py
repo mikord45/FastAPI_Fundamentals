@@ -23,7 +23,14 @@ async def get_cars(size: str|None = None, doors: int|None = None) -> list:
         result = [car for car in result if car["doors"] >= doors]
     return result
 
+@app.get("/api/cars/{id}")
+async def car_by_id(id: int):
+    result = [car for car in db if car["id"] == id]
+    return result[0]
+
 @app.get("/")
 async def welcome(name):
     return {"message": f"Welcome, {name} to the Car Sharing service!"}
 
+# if __name__ == "__main__":
+#     uvicorn.run("carsharing:app", reload=True)

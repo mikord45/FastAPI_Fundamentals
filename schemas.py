@@ -23,7 +23,7 @@ class CarInput(SQLModel):
 
 class Car(CarInput, table=True):
     id: int | None = Field(primary_key=True, default=None)
-    trips: list[Trip] = Relationship(back_populates="car")
+    trips: list[Trip] = Relationship(back_populates="car", cascade_delete=True)
 
 class CarOutput(CarInput):
     id: int

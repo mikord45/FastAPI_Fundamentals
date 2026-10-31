@@ -19,7 +19,7 @@ def get_session():
 app = FastAPI(title="Car Sharing Service", lifespan=lifespan)
 
 @app.get("/api/cars")
-async def get_cars(session: Annotated[Session, Depends(get_session)], size: str|None = None, doors: int|None = None) -> list[CarOutput]:
+def get_cars(session: Annotated[Session, Depends(get_session)], size: str|None = None, doors: int|None = None) -> list[CarOutput]:
     query = select(Car)
     if size:
         query = query.where(Car.size == size)
@@ -28,7 +28,7 @@ async def get_cars(session: Annotated[Session, Depends(get_session)], size: str|
     return list(session.exec(query).all())
 
 @app.get("/api/cars/{id}")
-async def car_by_id(session: Annotated[Session, Depends(get_session)], id: int) -> CarOutput:
+def car_by_id(session: Annotated[Session, Depends(get_session)], id: int) -> CarOutput:
     car = session.get(Car, id)
     if car:
         return car

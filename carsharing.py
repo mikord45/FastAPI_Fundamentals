@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from typing import Annotated
 
 from fastapi import FastAPI, HTTPException, Depends
-from schemas import load_db, CarInput, save_db, CarOutput, TripOutput, TripInput, Car
+from schemas import CarInput, CarOutput, TripOutput, TripInput, Car, Trip
 from sqlmodel import create_engine, SQLModel, Session, select
 
 engine = create_engine("sqlite:///carsharing.db", connect_args={"check_same_thread": False}, echo=True)
@@ -18,10 +18,8 @@ def get_session():
 
 app = FastAPI(title="Car Sharing Service", lifespan=lifespan)
 
-db = load_db()
-
 @app.get("/api/cars")
-async def get_cars(session: Annotated[Session, Depends(get_session)], size: str|None = None, doors: int|None = None) -> list[Car]:
+async def get_cars(session: Annotated[Session, Depends(get_session)], size: str|None = None, doors: int|None = None) -> list[CarOutput]:
     query = select(Car)
     if size:
         query = query.where(Car.size == size)
@@ -30,7 +28,7 @@ async def get_cars(session: Annotated[Session, Depends(get_session)], size: str|
     return list(session.exec(query).all())
 
 @app.get("/api/cars/{id}")
-async def car_by_id(session: Annotated[Session, Depends(get_session)], id: int) -> Car:
+async def car_by_id(session: Annotated[Session, Depends(get_session)], id: int) -> CarOutput:
     car = session.get(Car, id)
     if car:
         return car
@@ -65,13 +63,14 @@ def change_car(session: Annotated[Session, Depends(get_session)], id: int, new_d
     return car
 
 @app.post("/api/cars/{car_id}/trips")
-def add_trip(car_id: int, trip: TripInput) -> TripOutput:
-    car = next((car for car in db if car.id == car_id), None)
+def add_trip(session: Annotated[Session, Depends(get_session)], car_id: int, trip_input: TripInput) -> Trip:
+    car = session.get(Car, car_id)
     if car is None:
         raise HTTPException(status_code=404, detail=f"No car with id {car_id}")
-    new_trip = TripOutput(id=len(car.trips) + 1, **trip.model_dump())
+    new_trip = Trip.model_validate(trip_input, update={'car_id': car_id})
     car.trips.append(new_trip)
-    save_db(db)
+    session.commit()
+    session.refresh(new_trip)
     return new_trip
 
 @app.get("/")

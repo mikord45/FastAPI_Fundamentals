@@ -1,11 +1,16 @@
 import json
 
-from sqlmodel import SQLModel, Field
+from sqlmodel import SQLModel, Field, Relationship
 
 class TripInput(SQLModel):
     start: int
     end: int
     description: str
+
+class Trip(TripInput, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    car_id: int = Field(foreign_key="car.id")
+    car: "Car" = Relationship(back_populates="trips")
 
 class TripOutput(TripInput):
     id: int
@@ -18,15 +23,8 @@ class CarInput(SQLModel):
 
 class Car(CarInput, table=True):
     id: int | None = Field(primary_key=True, default=None)
+    trips: list[Trip] = Relationship(back_populates="car")
 
 class CarOutput(CarInput):
     id: int
     trips: list[TripOutput] = []
-
-def load_db() -> list[CarOutput]:
-    with open("cars.json") as f:
-        return [CarOutput.model_validate(obj) for obj in json.load(f)]
-
-def save_db(cars: list[CarOutput]):
-    with open("cars.json", "w") as f:
-        json.dump([car.model_dump() for car in cars], f, indent=4)

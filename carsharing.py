@@ -30,10 +30,10 @@ async def get_cars(session: Annotated[Session, Depends(get_session)], size: str|
     return list(session.exec(query).all())
 
 @app.get("/api/cars/{id}")
-async def car_by_id(id: int) -> CarOutput:
-    result = [car for car in db if car.id == id]
-    if result:
-        return result[0]
+async def car_by_id(session: Annotated[Session, Depends(get_session)], id: int) -> Car:
+    car = session.get(Car, id)
+    if car:
+        return car
     else:
         raise HTTPException(status_code=404, detail=f"No car with id {id}")
 
@@ -46,23 +46,22 @@ def add_car(session: Annotated[Session, Depends(get_session)], car_input: CarInp
     return new_car
 
 @app.delete("/api/cars/{id}", status_code=204)
-def remove_car(id: int) -> None:
-    matches = [car for car in db if car.id == id]
-    if matches:
-        car = matches[0]
-        db.remove(car)
-        save_db(db)
+def remove_car(session: Annotated[Session, Depends(get_session)], id: int) -> None:
+    car = session.get(Car, id)
+    if car:
+        session.delete(car)
+        session.commit()
     else:
         raise HTTPException(status_code=404, detail=f"No car with id {id}")
 
 @app.put("/api/cars/{id}")
-def change_car(id: int, new_data: CarInput) -> CarOutput:
-    car = next((car for car in db if car.id == id), None)
+def change_car(session: Annotated[Session, Depends(get_session)], id: int, new_data: CarInput) -> Car:
+    car = session.get(Car, id)
     if car is None:
         raise HTTPException(status_code=404, detail=f"No car with id {id}")
     for field, value in new_data.model_dump().items():
         setattr(car, field, value)
-    save_db(db)
+    session.commit()
     return car
 
 @app.post("/api/cars/{car_id}/trips")

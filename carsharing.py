@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
+from typing import Annotated
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from schemas import load_db, CarInput, save_db, CarOutput, TripOutput, TripInput, Car
 from sqlmodel import create_engine, SQLModel, Session, select
 
@@ -11,19 +12,22 @@ async def lifespan(app: FastAPI):
     SQLModel.metadata.create_all(engine)
     yield
 
+def get_session():
+    with Session(engine) as session:
+        yield session
+
 app = FastAPI(title="Car Sharing Service", lifespan=lifespan)
 
 db = load_db()
 
 @app.get("/api/cars")
-async def get_cars(size: str|None = None, doors: int|None = None) -> list[Car]:
-    with Session(engine) as session:
-        query = select(Car)
-        if size:
-            query = query.where(Car.size == size)
-        if doors:
-            query = query.where(Car.doors >= doors)
-        return list(session.exec(query).all())
+async def get_cars(session: Annotated[Session, Depends(get_session)], size: str|None = None, doors: int|None = None) -> list[Car]:
+    query = select(Car)
+    if size:
+        query = query.where(Car.size == size)
+    if doors:
+        query = query.where(Car.doors >= doors)
+    return list(session.exec(query).all())
 
 @app.get("/api/cars/{id}")
 async def car_by_id(id: int) -> CarOutput:
@@ -34,13 +38,12 @@ async def car_by_id(id: int) -> CarOutput:
         raise HTTPException(status_code=404, detail=f"No car with id {id}")
 
 @app.post("/api/cars")
-def add_car(car_input: CarInput) -> Car:
-    with Session(engine) as session:
-        new_car = Car.model_validate(car_input)
-        session.add(new_car)
-        session.commit()
-        session.refresh(new_car)
-        return new_car
+def add_car(session: Annotated[Session, Depends(get_session)], car_input: CarInput) -> Car:
+    new_car = Car.model_validate(car_input)
+    session.add(new_car)
+    session.commit()
+    session.refresh(new_car)
+    return new_car
 
 @app.delete("/api/cars/{id}", status_code=204)
 def remove_car(id: int) -> None:

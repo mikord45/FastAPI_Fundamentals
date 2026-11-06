@@ -4,7 +4,7 @@ from fastapi import FastAPI
 
 from db import engine
 from sqlmodel import SQLModel
-from routers import cars
+from routers import cars, web
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -13,6 +13,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Car Sharing Service", lifespan=lifespan)
 app.include_router(cars.router)
+app.include_router(web.router)
 
 @app.get("/")
 async def welcome(name):

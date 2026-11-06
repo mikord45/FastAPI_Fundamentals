@@ -1,6 +1,8 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from starlette import status
+from starlette.responses import JSONResponse
 
 from db import engine
 from sqlmodel import SQLModel
@@ -14,6 +16,10 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Car Sharing Service", lifespan=lifespan)
 app.include_router(cars.router)
 app.include_router(web.router)
+
+@app.exception_handler(cars.BadTripException)
+async def bad_trip_exception_handler(request: Request, exc: cars.BadTripException):
+    return JSONResponse(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, content={"message": "Bad Trip"})
 
 @app.get("/")
 async def welcome(name):

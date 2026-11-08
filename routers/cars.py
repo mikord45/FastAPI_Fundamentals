@@ -4,7 +4,8 @@ from fastapi import Depends, HTTPException, APIRouter
 from sqlmodel import Session, select
 
 from db import get_session
-from schemas import CarOutput, Car, CarInput, TripInput, Trip
+from routers.auth import get_current_user
+from schemas import CarOutput, Car, CarInput, TripInput, Trip, User
 
 router = APIRouter(prefix="/api/cars")
 
@@ -28,7 +29,7 @@ def car_by_id(session: Annotated[Session, Depends(get_session)], id: int) -> Car
 
 
 @router.post("/")
-def add_car(session: Annotated[Session, Depends(get_session)], car_input: CarInput) -> Car:
+def add_car(session: Annotated[Session, Depends(get_session)], user: Annotated[User, Depends(get_current_user)], car_input: CarInput) -> Car:
     new_car = Car.model_validate(car_input)
     session.add(new_car)
     session.commit()

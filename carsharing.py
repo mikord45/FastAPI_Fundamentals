@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from starlette import status
+from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
 
 from db import engine
@@ -16,6 +17,19 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Car Sharing Service", lifespan=lifespan)
 app.include_router(cars.router)
 app.include_router(web.router)
+
+origins = [
+    "http://localhost:8080",
+    "http://localhost:8080"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.exception_handler(cars.BadTripException)
 async def bad_trip_exception_handler(request: Request, exc: cars.BadTripException):

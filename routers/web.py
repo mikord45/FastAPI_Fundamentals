@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Request, Form, Depends
+from fastapi import APIRouter, Request, Form, Depends, Cookie
 from starlette.responses import HTMLResponse
 from starlette.templating import Jinja2Templates
 
@@ -14,7 +14,8 @@ router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
 @router.get("/", response_class=HTMLResponse)
-def home(request: Request):
+def home(request: Request, cars_cookie: Annotated[str | None, Cookie()]):
+    print(cars_cookie)
     return templates.TemplateResponse(request, "home.html")
 
 @router.post("/search", response_class=HTMLResponse)

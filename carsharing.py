@@ -21,6 +21,12 @@ app.include_router(web.router)
 async def bad_trip_exception_handler(request: Request, exc: cars.BadTripException):
     return JSONResponse(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, content={"message": "Bad Trip"})
 
+@app.middleware("http")
+async def add_cars_cookie(request: Request, call_next):
+    response = await call_next(request)
+    response.set_cookie(key="cars_cookie", value="you_visited_the_carsharing_app")
+    return response
+
 @app.get("/")
 async def welcome(name):
     return {"message": f"Welcome, {name} to the Car Sharing service!"}

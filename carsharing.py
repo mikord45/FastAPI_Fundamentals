@@ -7,7 +7,8 @@ from starlette.responses import JSONResponse
 
 from db import engine
 from sqlmodel import SQLModel
-from routers import cars, web
+from routers import cars, web, auth
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -17,6 +18,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Car Sharing Service", lifespan=lifespan)
 app.include_router(cars.router)
 app.include_router(web.router)
+app.include_router(auth.router)
 
 origins = [
     "http://localhost:8080",

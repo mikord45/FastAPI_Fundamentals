@@ -43,9 +43,9 @@ async def add_cars_cookie(request: Request, call_next):
     response.set_cookie(key="cars_cookie", value="you_visited_the_carsharing_app")
     return response
 
-@app.get("/")
-async def welcome(name):
-    return {"message": f"Welcome, {name} to the Car Sharing service!"}
+# @app.get("/")
+# async def welcome(name):
+#     return {"message": f"Welcome, {name} to the Car Sharing service!"}
 
 # if __name__ == "__main__":
 #     uvicorn.run("carsharing:app", reload=True)

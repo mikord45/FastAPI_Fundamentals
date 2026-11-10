@@ -14,7 +14,7 @@ router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
 @router.get("/", response_class=HTMLResponse)
-def home(request: Request, cars_cookie: Annotated[str | None, Cookie()]):
+def home(request: Request, cars_cookie: Annotated[str | None, Cookie()] = None):
     print(cars_cookie)
     return templates.TemplateResponse(request, "home.html")
 
